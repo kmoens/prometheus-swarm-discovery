@@ -27,6 +27,7 @@ const (
 	portLabel    = "prometheus.port"
 	includeLabel = "prometheus.scan"
 	excludeLabel = "prometheus.ignore"
+    pathLabel    = "prometheus.path"
 )
 
 var logger = logrus.New()
@@ -222,7 +223,10 @@ func taskLabels(task swarm.Task, serviceIDMap map[string]swarm.Service) map[stri
 		model.MetaLabelPrefix + "docker_task_desired_state": string(task.DesiredState),
         model.MetaLabelPrefix + "docker_service_name":       service.Spec.Name,
 	}
-	for k, v := range task.Spec.ContainerSpec.Labels {
+	if path, ok := service.Spec.Labels[pathLabel]; ok {
+        labels[model.MetricsPathLabel] = path
+    }
+    for k, v := range task.Spec.ContainerSpec.Labels {
 		labels[strutil.SanitizeLabelName(model.MetaLabelPrefix+"docker_task_label_"+k)] = v
 	}
 	for k, v := range service.Spec.Labels {
