@@ -186,9 +186,11 @@ func collectPorts(task swarm.Task, serviceIDMap map[string]swarm.Service) map[in
 	}
 
 	// collects exposed ports
-	for _, port := range serviceIDMap[task.ServiceID].Spec.EndpointSpec.Ports {
-		ports[int(port.TargetPort)] = struct{}{}
-	}
+
+    // TEMPORARY DISABLED - we prefer that ports are not autodetected anymore
+	//for _, port := range serviceIDMap[task.ServiceID].Spec.EndpointSpec.Ports {
+	//	ports[int(port.TargetPort)] = struct{}{}
+	//}
 
 	return ports
 }
