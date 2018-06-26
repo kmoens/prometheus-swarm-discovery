@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+    "strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
@@ -175,9 +176,12 @@ func collectPorts(task swarm.Task, serviceIDMap map[string]swarm.Service) map[in
 	ports := make(map[int]struct{})
 
 	// collects port defined in the container labels
-	if portstr, ok := task.Spec.ContainerSpec.Labels[portLabel]; ok {
-		if port, err := strconv.Atoi(portstr); err == nil {
-			ports[port] = struct{}{}
+	if portsstr, ok := task.Spec.ContainerSpec.Labels[portLabel]; ok {
+        portsarray := strings.Split(portsstr, ",")
+        for i := range portsarray {
+		    if port, err := strconv.Atoi(portsarray[i]); err == nil {
+			    ports[port] = struct{}{}
+            }
 		}
 	}
 
