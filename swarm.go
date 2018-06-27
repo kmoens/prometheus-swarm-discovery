@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
     "strings"
+    "os/exec"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
@@ -74,16 +75,12 @@ func connectNetworks(networks map[string]swarm.Network, containerID string) erro
 			continue
 		}
 		prometheusIP := allocateIP(netCIDR)
-		logger.Info("Connecting network ", netwrk.Spec.Name, "(", netCIDR.IP, ") to ", containerID, "(", prometheusIP, ")")
-		netconfig := &network.EndpointSettings{
-			IPAMConfig: &network.EndpointIPAMConfig{
-				IPv4Address: prometheusIP,
-			},
-		}
+		logger.Info("Connecting network ", netwrk.Spec.Name, "(", netCIDR.IP, ") to ", options.prometheusService, "(", prometheusIP, ")")
 
-		err = cli.NetworkConnect(context.Background(), netwrk.ID, containerID, netconfig)
+        cmd := exec.Command("docker", "service", "update", "--network-add", netwrk.Spec.Name, options.prometheusService)
+        err = cmd.Run()
 		if err != nil {
-			logger.Error("Could not connect container ", containerID, " to network ", netwrk.ID, ": ", err)
+			logger.Error("Could not connect service ", options.prometheusService, " to network ", netwrk.Spec.Name, ": ", err)
 			continue
 		}
 
@@ -185,8 +182,12 @@ func collectPorts(task swarm.Task, serviceIDMap map[string]swarm.Service) map[in
 		}
 	}
 
-	// collects exposed ports
+    // by default we expose on port 8700, so add this one if none is available
+    if (len(ports) <= 0) {
+        ports[8700] = struct{}{}
+    }
 
+	// collects exposed ports
     // TEMPORARY DISABLED - we prefer that ports are not autodetected anymore
 	//for _, port := range serviceIDMap[task.ServiceID].Spec.EndpointSpec.Ports {
 	//	ports[int(port.TargetPort)] = struct{}{}
