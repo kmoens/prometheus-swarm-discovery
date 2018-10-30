@@ -77,7 +77,7 @@ func connectNetworks(networks map[string]swarm.Network, containerID string) erro
 		prometheusIP := allocateIP(netCIDR)
 		logger.Info("Connecting network ", netwrk.Spec.Name, "(", netCIDR.IP, ") to ", options.prometheusService, "(", prometheusIP, ")")
 
-        cmd := exec.Command("docker", "service", "update", "--network-add", netwrk.Spec.Name, options.prometheusService)
+        cmd := exec.Command("docker", "service", "update", "-d", "--network-add", netwrk.Spec.Name, options.prometheusService)
         err = cmd.Run()
 		if err != nil {
 			logger.Error("Could not connect service ", options.prometheusService, " to network ", netwrk.Spec.Name, ": ", err)
@@ -85,6 +85,7 @@ func connectNetworks(networks map[string]swarm.Network, containerID string) erro
 		}
 
 	}
+    logger.Info("Networks connected")
 
 	return nil
 
